@@ -65,10 +65,10 @@ namespace Preschool.Models
         [Required]
         public int ClassroomId { get; set; }
 
+        public virtual Classroom Classroom { get; set; }
 
         public virtual ICollection<Subscription> Subscriptions { get; set; }
 
-        public virtual Classroom Classroom { get; set; }
 
         public virtual ICollection<DocumentsCopies> DocumentsImage { get; set; }
 

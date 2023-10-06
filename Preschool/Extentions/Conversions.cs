@@ -24,6 +24,7 @@ namespace Preschool.Extentions
                 DateOfBirthUtc = DateTime.SpecifyKind(childModel.DateOfBirth, DateTimeKind.Utc),
                 EnrolDateUtc =  DateTime.SpecifyKind(childModel.EnrolDate, DateTimeKind.Utc),
                 ClassroomId = childModel.ClassroomId,
+                ClassroomJosn = JsonConvert.SerializeObject(childModel.Classroom),
                 SubscriptionsJson = JsonConvert.SerializeObject(childModel.Subscriptions),
                 DocumentsImageJson= JsonConvert.SerializeObject(childModel.DocumentsImage),
                 AttendancesJson = JsonConvert.SerializeObject(childModel.Attendances),
@@ -46,6 +47,7 @@ namespace Preschool.Extentions
                 DateOfBirth = childEntity.DateOfBirthUtc,
                 EnrolDate = childEntity.DateOfBirthUtc,
                 ClassroomId = childEntity.ClassroomId,
+                Classroom = JsonConvert.DeserializeObject<Classroom>(childEntity.ClassroomJosn),
                 Subscriptions = JsonConvert.DeserializeObject<List<Subscription>>(childEntity.SubscriptionsJson),
                 DocumentsImage = JsonConvert.DeserializeObject<List<DocumentsCopies>>(childEntity.DocumentsImageJson),
                 Attendances = JsonConvert.DeserializeObject<List<Attendance>>(childEntity.AttendancesJson),
@@ -91,6 +93,7 @@ namespace Preschool.Extentions
                 FatherName = child.FatherName,
                 MotherName = child.MotherName,
                 ClassroomId = child.ClassroomId,
+                
             };
             return childVm;
         }
@@ -110,7 +113,7 @@ namespace Preschool.Extentions
                 FatherName = childVm.FatherName,
                 DateOfBirth = childVm.DateOfBirth,
                 EnrolDate = childVm.EnrolDate,
-                ClassroomId = childVm.ClassroomId
+                ClassroomId = childVm.ClassroomId,
             };
             return child;
         }

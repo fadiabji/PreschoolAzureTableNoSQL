@@ -91,6 +91,8 @@ namespace Preschool.Models.Entities
         public int ClassroomId { get; set; }
 
 
+        // Define a property for storing the serialized JSON data
+        public string ClassroomJosn { get; set; }
 
 
         // Define a property for storing the serialized JSON data

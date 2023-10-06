@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Preschool.Models
 {
+
+    
     public class DocumentsCopies
     {
             [Key]
@@ -11,6 +13,8 @@ namespace Preschool.Models
 
             [Required]
             public string ImageFile { get; set; }
+
+            
 
     }
 }
