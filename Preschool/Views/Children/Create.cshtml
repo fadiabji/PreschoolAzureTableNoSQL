@@ -1,0 +1,105 @@
+﻿@model Preschool.Models.ViewModels.ChildVM  
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Child</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FatherName" class="control-label"></label>
+                <input asp-for="FatherName" class="form-control" />
+                <span asp-validation-for="FatherName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FatherTelephone" class="control-label"></label>
+                <input asp-for="FatherTelephone" class="form-control" />
+                <span asp-validation-for="FatherTelephone" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MotherName" class="control-label"></label>
+                <input asp-for="MotherName" class="form-control" />
+                <span asp-validation-for="MotherName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MotherTelephone" class="control-label"></label>
+                <input asp-for="MotherTelephone" class="form-control" />
+                <span asp-validation-for="MotherTelephone" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Nationality" class="control-label"></label>
+                <input asp-for="Nationality" class="form-control" />
+                <span asp-validation-for="Nationality" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="control-label"></label>
+                <input asp-for="DateOfBirth" class="form-control" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnrolDate" class="control-label"></label>
+                <input asp-for="EnrolDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="EnrolDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ClassroomId" class="control-label"></label>
+                <select asp-for="ClassroomId" class="form-control" asp-items="ViewBag.ClassId"></select>
+            </div>
+
+           @*  <div class="form-group">
+                <label asp-for="SubscriptionTypeId" class="control-label"></label>
+                <select asp-for="SubscriptionTypeId" class="form-control" asp-items="ViewBag.SubscriptionTypeId"></select>
+            </div> *@
+
+            <div class="form-group">
+                <label asp-for="DocumentCopies" class="control-label"></label>
+                <input type="file" class="form-control" name="DocumentCopies" multiple />
+                <span asp-validation-for="DocumentCopies" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@*@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+*@
+
+@section Scripts {
+
+    <script>
+        function givevaluetofilename() {
+            var fileName = document.getElementById("File").value;
+            document.getElementById("DocumentCopies").value = fileName.substring(12);
+        }
+        // To click on the hidden button because I cannot reach it
+        function typevaluefunc() {
+            document.getElementById("File").click();
+        }
+    </script>
+}

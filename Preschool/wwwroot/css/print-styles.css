@@ -1,0 +1,36 @@
+﻿/* print-styles.css */
+
+/* Hide the search input and "Create New" button */
+#myInput,
+.btn-secondary {
+    display: none;
+}
+
+/* Define a style for the printed table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+/* Adjust the printed page's layout */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+/* Additional styling as needed */
+
+#SkippTh {
+    display: none;
+}

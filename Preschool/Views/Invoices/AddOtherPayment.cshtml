@@ -1,0 +1,140 @@
+﻿@model Preschool.Models.Invoice
+
+@{
+    ViewData["Title"] = "AddOtherPayment";
+}
+
+<div class="row">
+    <div class="col-md-5">
+        <h3>Invoice Details</h3>
+        <div style="border:solid; padding: 15px " >
+            <p><b>Childe Name:</b> @Model.Child.FullName</p>
+            <p><b>Father Name:</b> @Model.Child.FatherName</p>
+            <p><b>Father Telephone:</b> @Model.Child.FatherTelephone</p>
+            <p><b>Invoice Number:</b> @Model.InvoiceNumber</p>
+            <p><b>Invoice Date:</b> @Model.InvoiceDate.ToString("yyy/MM/dd")</p>
+            <p><b>Discount:</b> @Model.Discount </p>
+            <p><b>Total:</b> @Model.CalculateTotal</p>
+            <p><b>Payed:</b> <span style="color:green">@Model.CalculatePayments</span></p>
+            <p><b>Left:</b> <span style="color:red">@Model.CalculateBalance</span></p>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <h3>All Payments </h3>
+        <div>
+            <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>
+                            Id
+                    </th>
+                    <th>
+                            Amount
+                    </th>
+                    <th>
+                            Payment Date
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="table-hover">
+                    @foreach (var payment in Model.Payments)
+                    {
+                    <tr>
+                        <td>
+                            @payment.Id
+                        </td>
+                        <td>
+                            @payment.Amount
+                        </td>
+                        <td>
+                             @payment.PaymentDate.ToString("yyy/MM/dd")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<br />
+<br/>
+         
+<div class="row">
+
+    <h3>All Subscriptions </h3>
+                <div class="col-md-6">
+                    <div>
+                        <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Code
+                                        </th>
+                                        <th>
+                                            Name
+                                        </th>
+                                        <th>
+                                            Price
+                                        </th>
+                                        <th>
+                                            Description
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="myTable">
+                                        @foreach (var subtype in Model.InvoiceSubscriptionType)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @subtype.SubscriptionType.Id
+                                                </td>
+                                                <td>
+                                                     @subtype.SubscriptionType.Name
+                                                </td>
+                                                <td>
+                                                    @subtype.SubscriptionType.Price
+                                                </td>
+                                                <td>
+                                                    @subtype.SubscriptionType.Description
+                                            </tr>
+                                        }
+                                </tbody>
+                        </table>
+                        <p><b>Discount:</b> @Model.Discount </p>
+                        <p><b>Total:</b> @Model.CalculateTotal</p>
+                     </div>
+                </div>
+                <div class="col-md-4">
+                    <h3>Pay More:</h3>
+                    <div style="border:solid; padding: 15px ">
+                        <form asp-action="AddOtherPayment">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <div class="form-group">
+                                <label asp-for="Id" class="control-label" hidden></label>
+                                <input type="number" class="form-control" name="InvoiceId" value="@Model.Id" hidden />
+                                <span asp-validation-for="Id" class="text-danger"hidden></span>
+                            </div>
+                             <div class="form-group">
+                                <label class="control-label" >Amount</label>
+                                <input type="number" class="form-control" name="Amount" />
+                            </div>
+
+                            <div class="form-group">
+                                <input type="submit" value="Add" class="btn btn-primary" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+</div>
+            
+           
+
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+
+@section Scripts {
+}

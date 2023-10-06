@@ -1,0 +1,202 @@
+﻿@model Preschool.Models.Invoice
+
+@{
+    ViewData["Title"] = "PrintInvoice";
+    
+}
+<head>
+    <link href="~/css/print-invoice.css" rel="stylesheet" />
+</head>
+
+
+<div class="invoice-container">
+    <img class="invoice-logo" src="~/images/logo.png" />
+    <span class="invoice-date">Invoice-Date: @DateTime.Now.ToString("yyyy/MM/dd")</span>
+    <div class="invoice-header">
+        <div class="col-md-12 text-center">
+            <h1>The English Kindergarten - TEK</h1>
+            <p>Doha, Qatar</p>
+        </div>
+    </div>
+
+    <div class="invoice-details">
+        <button class="btn-secondary" id="printButton">Print Page</button>
+        @* <button class="btn-secondary" onclick="printInvoice()">Print</button> *@
+        <div class="row border">
+            <div class="col-md-5">
+                <div>
+                    <h4>Student Details</h4>
+                    <div class="student-details" id="studentDetails">
+                        <p><b>Childe Name:</b> <span id="childName">@Model.Child.FullName</span></p>
+                        <p><b>Father Name:</b> @Model.Child.FatherName</p>
+                        <p><b>Father Telephone:</b> @Model.Child.FatherTelephone</p>
+                        <p><b>Nationality:</b> @Model.Child.Nationality</p>
+                        <p><b>Child Birth Date:</b> @Model.Child.DateOfBirth.ToString("yyy/MM/dd")</p>
+                        <p><b>Enrol Date:</b> @Model.Child.EnrolDate.ToString("yyy/MM/dd")</p>
+                        <p><b>Classroom:</b> @Model.Child.Classroom.Name</p>
+                    </div>
+                    <h4>Invoice Details</h4>
+                    <div class="invoice-details" id="invoiceDetails">
+                        <p><b>Invoice Number:</b><span id="invoiceNumber"> @Model.InvoiceNumber</span> </p>
+                        <p><b>Invoice Date:</b> @Model.InvoiceDate.ToString("yyy/MM/dd")</p>
+                        <p><b>Discount:</b> @Model.Discount  </p>
+                        <p><b>Total:</b> @Model.CalculateTotal &nbsp;QR</p>
+                        <p><b>Payed:</b> <span style="color:green">@Model.CalculatePayments &nbsp;QR</span></p>
+                        <p><b>Left:</b> <span style="color:red">@Model.CalculateBalance &nbsp;QR</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <h4>Payments Details</h4>
+                <div class="payment-details" id="PaymentDetails">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Id
+                                </th>
+                                <th>
+                                    Amount
+                                </th>
+                                <th>
+                                    Payment Date
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-hover">
+                            @foreach (var payment in Model.Payments)
+                            {
+                                <tr>
+                                    <td>
+                                        @payment.Id
+                                    </td>
+                                    <td>
+                                        @payment.Amount
+                                    </td>
+                                    <td>
+                                        @payment.PaymentDate.ToString("yyy/MM/dd")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row border">
+            <div class="text-center">
+                <h4>Invoice Details </h4>
+                <h5>Acadmic Year @DateTime.Now.Year &minus; @DateTime.Now.AddYears(1).Year</h5>
+            </div>
+            <div class="col-md-12">
+                <div id="subscriptionsDetails">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Code
+                                </th>
+                                <th>
+                                    Name
+                                </th>
+                                <th>
+                                    Price
+                                </th>
+                                <th>
+                                    Description
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="myTable">
+                            @foreach (var subtype in Model.InvoiceSubscriptionType)
+                            {
+                                <tr>
+                                    <td>
+                                        @subtype.SubscriptionType.Id
+                                    </td>
+                                    <td>
+                                        @subtype.SubscriptionType.Name
+                                    </td>
+                                    <td>
+                                        @subtype.SubscriptionType.Price
+                                    </td>
+                                    <td>
+                                        @subtype.SubscriptionType.Description
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <span><b>Discount:</b> @Model.Discount </span> &nbsp; <span><b>Total:</b> @Model.CalculateTotal &nbsp;QR</span>
+                </div>
+            </div>
+        </div>
+        <p class="text-center">Thank you for choosing our daycare/preschool services.</p>
+        <br />
+        <div class="row invoice-footer text-center">
+            <div class="col-md-4 border signature">
+                <p>Adminstration Signature</p>
+            </div>
+            <div class="col-md-4">
+                <img class="qr-code" src="~/documentscopies/qr_code.png" />
+            </div>
+            <div class="col-md-4 border signature">
+                <p>Child Parents Signature</p>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+    <div>
+        <a id="back-to-list" asp-action="Index">Back to List</a>
+    </div>
+
+</div>
+
+
+
+@section Scripts {
+    <script>
+        document.getElementById("printButton").addEventListener("click", function () {
+
+            // Apply print styles
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = '/css/print-invoice.css'; // Adjust the path to your CSS file
+            document.getElementsByTagName('head')[0].appendChild(link);
+
+            // Remove the print button from the printed page
+            var printButton = document.querySelector('.btn-secondary');
+            if (printButton) {
+                printButton.style.display = 'none';
+            }
+
+            var backtolist = document.getElementById('back-to-list')
+            if (backtolist) {
+                backtolist.style.display = 'none';
+            }
+
+            var footer = document.getElementsByTagName('footer')[0];
+            if (footer) {
+                footer.style.display = 'none';
+            }
+
+            window.print();
+            location.reload();
+            
+            // Restore the original styles and show the print button
+            link.parentNode.removeChild(link);
+            if (printButton & footer) {
+                printButton.style.display = 'block';
+                footer.style.display = 'block';
+            }
+            
+        });
+
+    </script>
+}

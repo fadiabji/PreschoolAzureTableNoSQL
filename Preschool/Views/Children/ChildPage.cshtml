@@ -1,0 +1,101 @@
+﻿@model Preschool.Models.Child
+
+
+@{
+    ViewData["Title"] = "ChildPage";
+}
+
+<h1 class="bg-info text-white">Child Page</h1>
+<a asp-action="Index" class="btn btn-secondary">Back</a>
+@*subscirption history*@
+<h3>Subscirptions History</h3>
+<div class="row">
+    @await Component.InvokeAsync("ChildSubscriptionsHistory" , new {id = Model.Id})
+    <br />
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" src="" style="max-width: 100%; max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+
+@*Attendance schema*@
+<h3>Attendance Schema </h3>
+<div class="row">
+    @await Component.InvokeAsync("Childattendance" , new {id = Model.Id})
+    <br />
+</div>
+<br />
+
+@*Child Documents*@
+<h3>Child Documents </h3>
+<div class="row">
+    @foreach (var image in Model.DocumentsImage.Select(i => i.ImageFile))
+    {
+        <div class="col-lg-4">
+            <a href="#" data-toggle="modal" data-target="#imageModal" onclick="showImage('@image')">
+                <div class="card" style="width: 18rem;">
+                    <img class="card-img-top" height="350" src="~/DocumentsCopies/@image" alt="@image"/>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+<br/>
+<br/>
+<br />
+<br />
+
+
+
+
+
+
+@section Scripts {
+    <script>
+        function showImage(imageFile) {
+            var baseUrl = '@Url.Content("~/")'; // Razor syntax to get the application's root path
+            var modalImage = document.getElementById('modalImage');
+            modalImage.src = baseUrl + 'DocumentsCopies/' + imageFile;
+        }
+
+    
+        $(document).ready(function () {
+            // Get references to elements
+            var table = document.querySelector('.table');
+            var tableBody = document.getElementById('myTable-1');
+            var showMoreButton = document.getElementById('showMoreButton-1');
+            
+            // Initialize a variable to keep track of the number of visible rows
+            var visibleRowCount = 10;
+
+            // Function to show additional rows
+            function showMoreRows() {
+                var rows = tableBody.getElementsByClassName('table-row');
+                for (var i = visibleRowCount; i < rows.length; i++) {
+                    rows[i].style.display = 'table-row';
+                }
+                // Update the visible row count
+                visibleRowCount = rows.length;
+                // Hide the "Show More" button if all rows are visible
+                if (visibleRowCount === rows.length) {
+                    showMoreButton.style.display = 'none';
+                }
+            }
+            
+            // Attach a click event to the "Show More" button
+            showMoreButton.addEventListener('click', showMoreRows);
+        });
+    </script>
+}

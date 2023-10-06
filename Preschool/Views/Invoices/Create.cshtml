@@ -1,0 +1,159 @@
+﻿@model Preschool.Models.ViewModels.InvoiceVM
+
+@{
+    ViewData["Title"] = "Create";
+}
+<h1>Create</h1>
+
+<h4>Invoice</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form id="MyFormId" asp-action="Create" >
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+           
+           
+
+            <div class="form-group">
+                <label asp-for="InvoiceDate" class="control-label"></label>
+                <input asp-for="InvoiceDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="ChildId" class="control-label"></label>
+                <select asp-for="ChildId" class ="form-control" asp-items="ViewBag.ChildId"></select>
+            </div>
+
+
+            <div class="form-group">
+                <label asp-for="InvoiceItems" class="control-label"></label>
+                <select id="selectedInvoiceItemId" asp-for=" InvoiceItems" class="form-control" asp-items="ViewBag.InvoiceItems"></select>
+            </div>
+           
+
+            <div class="form-group">
+                <label asp-for="InvoiceItems" class="control-label"hidden></label>
+                <input id="myinput" type="text" class="form-control" name="InvoiceItems" hidden />
+                <span asp-validation-for="InvoiceItems" class="text-danger" hidden></span>
+            </div>
+
+
+            
+
+            <!-- Button to add InvoiceItem -->
+            <button type="button" id="addInvoiceItemButton">Add Invoice Item</button>
+            <!-- Container to display added items -->
+            <div id="addedItemsContainer">
+                <!-- Added items will appear here -->
+            </div>
+            <div class="form-group">
+                <label asp-for="Payment" class="control-label" ></label>
+                <input type="number" class="form-control" name="Payment"  />
+                <span asp-validation-for="Payment" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="Discount" class="control-label"></label>
+                <input type="number" class="form-control" name="Discount" value="0.0" />
+                <span asp-validation-for="Discount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+        <script>
+            $(document).ready(function () {
+                // Initialize an array to store selected items
+                var selectedItems = [];
+
+                $("#addInvoiceItemButton").click(function () {
+                    // Get the selected InvoiceItem Id
+                    var selectedInvoiceItemId = $("#selectedInvoiceItemId").val();
+
+                    // Perform AJAX request to add the selected InvoiceItem by Id
+                    $.ajax({
+                        url: "/Invoices/AddInvoiceItem",
+                        type: "POST",
+                        data: { invoiceItemId: selectedInvoiceItemId }, // Include the selected Id in the data
+                        success: function (data) {
+                            // Check if there is an existing table in the container
+                            var tableElement = $("#addedItemsContainer table");
+                            // Get the input element by its ID
+                            var myinput = document.getElementById("myinput");
+
+                            if (tableElement.length === 0) {
+                                // If no table exists, add table headers and create a new table
+                                var tableHeader = '<table class="table table-striped">' +
+                                    '<tr>' +
+                                    '<th>Code</th>' +
+                                    '<th>Type</th>' +
+                                    '<th>Description</th>' +
+                                    '<th>Price</th>' +
+                                    '<th>Cancel</th>' +
+                                    '</tr></table>';
+
+                                $("#addedItemsContainer").append(tableHeader);
+                                tableElement = $("#addedItemsContainer table");
+                            }
+
+                            // Create a new table row for the data
+                            var tableRow = '<tr id="trSelectectItem">' +
+                                '<td>' + data.id + '</td>' +
+                                '<td>' + data.name + '</td>' +
+                                '<td>' + data.description + '</td>' +
+                                '<td>' + data.price + '</td>' +
+                                '<td><a class="delete-item" style="color:red">X</a></td>' +
+                                '</tr>';
+
+                            // Append the table row to the existing or new table
+                            tableElement.append(tableRow);
+
+                            
+
+                            // Push the selected item's value to the array
+                            selectedItems.push(data.id.toString());
+
+                            // Convert the array to a comma-separated string
+                            var selectedItemsString = selectedItems.join(',');
+
+                            // Set the value of the input element
+                            myinput.value = selectedItemsString;
+
+                        }
+                    });
+                });
+
+                // Attach a click event handler to the delete buttons
+                $("#addedItemsContainer").on("click", ".delete-item", function () {
+                    
+                    var tableCellValue = $(this).closest('tr').find("td:first").text();
+
+
+                    var input = $("#myinput").val();
+                    input = input.replace(tableCellValue, "");
+                    $("#myinput").val(input);
+                    
+                    // Find the parent <tr> element and remove it
+                    $(this).closest('tr').remove();
+                });
+            });
+    </script>
+}
+
+
+ 

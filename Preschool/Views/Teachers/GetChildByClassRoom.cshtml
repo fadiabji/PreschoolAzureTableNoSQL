@@ -1,0 +1,156 @@
+﻿@model IEnumerable<Child>
+
+
+
+
+    
+<h1>Childern List to Classroom @Model.Select(c => c.Classroom.Name).FirstOrDefault()</h1>
+
+
+<!-- Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>          
+            </div>
+            <div class="modal-body">
+                Are you sure you want to check in/out this child?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="confirmationCancelButton">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmationOkButton">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<input class="form-control" id="myInput" type="text" placeholder="Search..">
+<br />
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Child Name
+            </th>
+           
+            <th>
+                Class Room
+            </th>
+           
+            <th>
+                Last Check in - out
+            </th>
+
+            <th>
+                Attendances
+            </th>
+            <th>
+                
+            </th>
+
+        </tr>
+    </thead>
+    <tbody id="myTable">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.FirstName @item.LastName
+                </td>
+                
+                <td>
+                    @item.Classroom.Name
+                </td>
+                <td>
+                    @item.Attendances.OrderByDescending(a => a.Date).Select(a => a.Date).FirstOrDefault().ToString("yyyy/MM/dd HH:mm tt")
+                </td>
+                
+                <td>
+                   
+                        @if (item.Attendances.OrderByDescending(a => a.Date).Select(a => a.Status).FirstOrDefault())
+                        {
+                        <label class="switch" data-route-id="@item.Id">
+                            <input type="checkbox" id="slider-@item.Id" checked> <!-- Unique ID for each switch -->
+                            <span class="slider round" ></span>
+                        </label>
+                        
+                        }
+                        else
+                        {
+                        <label class="switch" data-route-id="@item.Id">
+
+                            <input type="checkbox" id="slider-@item.Id"> <!-- Unique ID for each switch -->
+                            <span class="slider round" ></span>
+                        </label>
+
+                        }
+                </td>
+                
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#myInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#myTable tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            document.querySelectorAll("input[type='checkbox']").forEach(function (checkbox) {
+                checkbox.addEventListener("change", function () {
+                    var isChecked = this.checked;
+                    var routeId = this.parentElement.getAttribute("data-route-id");
+                    var action = isChecked ? "ChildCheckIn" : "ChildCheckOut";
+                    var resultId = "result-" + routeId; // Unique result ID
+
+                    // Show the confirmation dialog
+                    $("#confirmationModal").modal("show");
+
+                    // Handle the "Ok" button click
+                    $("#confirmationOkButton").click(function () {
+                        $.ajax({
+                            type: "POST",
+                            url: `/${action}/${routeId}`,
+                            success: function (response) {
+                                // Close the confirmation dialog
+                                $("#confirmationModal").modal("hide");
+                                // Refresh the page
+                                window.location.reload();
+                            },
+                            error: function (error) {
+                                console.error("Error:", error);
+                            }
+                        });
+                    });
+
+                    // Handle the "Cancel" button click
+                    $("#confirmationCancelButton").click(function () {
+                        // Close the confirmation dialog
+                        $("#confirmationModal").modal("hide");
+                        // Uncheck the checkbox if the user canceled
+                        checkbox.checked = !isChecked;
+                    });
+
+                    // Handle the modal close event (if user cancels)
+                    $("#confirmationModal").on("hidden.bs.modal", function () {
+                        // Uncheck the checkbox if the user canceled
+                        checkbox.checked = !isChecked;
+                    });
+                });
+            });
+        });
+
+    </script>
+}
+
+
+

@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Subscription>
+
+
+
+
+<h3>For <span class="TitleLine" id="childName">@Model.Select(s => s.Child.FullName).FirstOrDefault() </span></h3>
+<br />
+
+<div class="row">
+    @foreach (var subscription in Model)
+    {
+        <div class="col-md-4">
+            @if (subscription.IsActive == true)
+            {
+                
+                <div class="subCardBody card-body"  style=" border: 5px double #12b800;">
+                    <div id="@subscription.Id.ToString()">
+                        <h4 class="card-title">Subscription Type: <b>@subscription.SubscriptionType.Name</b></h4>
+                        <p class="card-text">Starts at: @subscription.CreatedAt.ToString("yyyy/MM/dd")</p>
+                        <p class="card-text">Expires at: @subscription.ExpireAt.ToString("yyyy/MM/dd")</p>
+                        <p class="card-text">Price: @subscription.SubscriptionType.Price QR </p>
+                        <p class="card-text">Status: <span style="color:#12b800;"><b>Active</b></span></p>
+                    </div>
+                    <p class="card-text">
+                        <button onclick="printBill(@subscription.Id.ToString())">Print Bill</button>
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="subCardBody card-body" style=" border: 5px double #ff0000;;">
+                    <div id="@subscription.Id.ToString()">
+                        <h4 class="card-title" id="subTypeName">Subscription Type: <b>@subscription.SubscriptionType.Name</b></h4>
+                        <p class="card-text" id="createdAt">Created at: @subscription.CreatedAt.ToString("yyyy/MM/dd")</p>
+                        <p class="card-text" id="expiresAt">Expires at: @subscription.ExpireAt.ToString("yyyy/MM/dd")</p>
+                        <p class="card-text" id="price">Price: @subscription.SubscriptionType.Price QR</p>
+                        <p class="card-text" id="subStatus">Status: <span style="color:#ff0000;"><b>Expired</b></span></p>
+                    </div>
+                    <p class="card-text">
+                        <button onclick="printBill(@subscription.Id)">Print Bill</button>
+                    </p>
+                </div>
+
+            }
+
+        </div>
+
+    }
+</div>
+<br />
+

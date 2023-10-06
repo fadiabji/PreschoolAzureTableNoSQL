@@ -1,0 +1,180 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    background-image: url('../images/background3.jpeg');
+    background-size: cover; /* Adjust the image size to cover the entire viewport */
+}
+
+
+/*subcard*/
+.subCardBody {
+    border: 5px double dodgerblue;
+    border-radius: 60px;
+    padding: 5px;
+    color: black;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+/*child document images*/
+
+.image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    /* Add more styling as needed */
+}
+.image-item {
+    width: 30%; /* Adjust the width as needed */
+    margin: 10px;
+    /* Add more styling as needed */
+}
+
+
+
+/*slide to check in och out child*/
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+    /* Hide default HTML checkbox */
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+.navbar-transparent {
+    background-color: rgba(255, 255, 255, 0.5); /* Adjust the alpha value for transparency */
+}
+
+
+/*style home index page*/
+
+
+.homepageheader {
+    background-color: #7CA7DA;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+}
+
+.section {
+    background-color: #F48A9E;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+h1 {
+    font-size: 36px;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
+    margin-top: 100px;
+}
+
+
+.image {
+    max-height: 260px;
+    width: 200px;
+    margin:20px 20px 20px 20px;
+    max-width: 100%;
+    height: auto;
+}
+
+/*view more table */
+/* Hide all rows initially */
+.my-custom-table .table-row {
+    display: none;
+}
+
+/* Show the last ten rows */
+.my-custom-table .table-body tr:nth-last-child(-n+10) {
+    display: table-row;
+}
+
+main {
+    margin-bottom: 300px;
+}
+
+
+.footer {
+    height: auto; /* Adjust the height as needed */
+    background-color: #7CA7DA; /* Optional: Set a background color for the footer */
+}
+
+    .footer p {
+        text-align: center;  
+        font-size: 18px;  
+        line-height: 0.5;
+    }

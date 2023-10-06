@@ -1,0 +1,14 @@
+﻿@model Preschool.Models.Teacher
+
+
+@{
+    ViewData["Title"] = "TeacherPage";
+}
+
+<h1>Teacher Page</h1>
+
+<h2>Name : @Model.FirstName @Model.LastName</h2>
+
+<h3 style="color:darkblue">
+    <a asp-controller="Teachers" asp-action="GetChildByClassRoom" asp-route-teacherId="@Model.Id">Childern check In and out Page</a>
+</h3>

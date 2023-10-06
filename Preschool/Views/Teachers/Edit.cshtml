@@ -1,0 +1,80 @@
+﻿@model Preschool.Models.ViewModels.TeacherVM
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Teacher</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="control-label"></label>
+                <input asp-for="DateOfBirth" class="form-control" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RegistedAt" class="control-label"></label>
+                <input asp-for="RegistedAt" class="form-control" />
+                <span asp-validation-for="RegistedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClassroomId" class="control-label"></label>
+                <select asp-for="ClassroomId" class="form-control" asp-items="ViewBag.ClassId"></select>
+                <span asp-validation-for="ClassroomId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DocumentCopies" class="control-label"></label>
+                <input type="file" class="form-control" name="DocumentCopies" multiple />
+                <span asp-validation-for="DocumentCopies" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@*@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}*@
+
+
+@section Scripts {
+
+    <script>
+        function givevaluetofilename() {
+            var fileName = document.getElementById("File").value;
+            document.getElementById("DocumentCopies").value = fileName.substring(12);
+        }
+        // To click on the hidden button because I cannot reach it
+        function typevaluefunc() {
+            document.getElementById("File").click();
+        }
+    </script>
+}

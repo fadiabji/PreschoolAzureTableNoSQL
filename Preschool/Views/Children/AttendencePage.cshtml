@@ -1,0 +1,33 @@
+﻿@using Preschool.Models.ViewModels;
+@model IEnumerable<Preschool.Models.Classroom>
+
+@{
+    ViewData["Title"] = "AttendencePage";
+}
+
+<h1 class="bg-info text-white">Attendence Page</h1>
+
+<a asp-action="Index" class="btn btn-secondary">Back</a>
+<br />
+<br />
+
+<div class="row">
+    @foreach (var classroom in Model)
+    {
+        <div class="col-sm-4">
+            <a asp-action="GetChildByClassRoom" asp-route-id="@classroom.Id">
+                <div class="card" style="width: 18rem; background-color:@classroom.Color; text-align: center;">
+                    <div class="card-body">
+                        <h3 class="card-title">@classroom.Name</h3>
+                        <h6 class="card-subtitle mb-2 text-muted"><i class="@classroom.Icon"></i></h6>
+                        <p class="card-text">The class were I can check in and out the kids.</p>
+                       @*  <a href="#" class="card-link">Card link</a>
+                        <a href="#" class="card-link">Another link</a> *@
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+

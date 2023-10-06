@@ -1,0 +1,73 @@
+﻿@model Preschool.Models.Classroom
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Class</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            @* <div class="form-group">
+                <label asp-for="Icon" class="control-label"></label>
+                <input asp-for="Icon" class="form-control" />
+                <span asp-validation-for="Icon" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Color" class="control-label"></label>
+                <input asp-for="Color" class="form-control" />
+                <span asp-validation-for="Color" class="text-danger"></span>
+            </div> *@
+            <div class="form-group">
+                <label asp-for="Icon" class="control-label">Icon</label>
+                <select asp-for="Icon" class="form-control">
+                    <option value="fa fa-3x fa-child">Child</option>
+                    <option value="fa fa-3x fa-rocket">Rocket</option>
+                    <option value="fa fa-3x fa-university">university</option>
+                    <option value="fa fa-3x fa-bicycle">bicycle</option>
+                    <option value="fa fa-3x fa-car">car</option>
+                    <option value="fa fa-3x fa-anchor">anchor</option>
+                    <option value="fa fa-3x fa-plane">plane</option>
+                    <option value="fa fa-3x fa-book">book</option>
+                    <option value="fa fa-3x fa-binoculars">binoculars</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Color" class="control-label">Color</label>
+                <select asp-for="Color" class="form-control">
+                    <option value="#76D7C4 ">Green</option>
+                    <option value="Pink">Pink</option>
+                    <option value="#EEC457">Orange</option>
+                    <option value="#57D2EE ">White Blue</option>
+                    <option value="#F043E0">Purble</option>
+                    <option value="#F2F483">Yellow</option>
+                    <option value="#F0177D">Qatar Flag color</option>
+                    <option value="#F57363">White Red</option>
+                    <option value="#76D7C4">White Green</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
