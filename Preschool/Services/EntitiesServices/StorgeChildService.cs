@@ -65,8 +65,26 @@ namespace Preschool.Services.EntitiesServices
             TableClient tableClient = _tableServiceClient.GetTableClient(tableName: "ChildernTable");
             tableClient.CreateIfNotExists();
             var tableEntity = tableClient.Query<ChildEntity>(c => c.RowKey == childEntity.RowKey).FirstOrDefault();
-            childEntity.ETag = tableEntity.ETag;
-            tableClient.UpdateEntity(childEntity, childEntity.ETag);
+            tableEntity.Id = childEntity.Id;
+            tableEntity.EnrolDateUtc = childEntity.EnrolDateUtc;
+            tableEntity.AttendancesJson = childEntity.AttendancesJson;
+            tableEntity.InvoicesJson = childEntity.InvoicesJson;
+            tableEntity.AttendancesJson = childEntity.AttendancesJson;
+            tableEntity.SubscriptionsJson = childEntity.SubscriptionsJson;
+            tableEntity.ClassroomId = childEntity.ClassroomId;
+            tableEntity.ClassroomJosn = childEntity.ClassroomJosn;
+            tableEntity.DateOfBirthUtc = childEntity.DateOfBirthUtc;
+            tableEntity.DocumentsImageJson = childEntity.DocumentsImageJson;
+            tableEntity.FatherName = childEntity.FatherName;
+            tableEntity.EnrolDateUtc = childEntity.EnrolDateUtc;
+            tableEntity.FatherTelephone = childEntity.FatherTelephone;
+            tableEntity.FirstName = childEntity.FirstName;
+            tableEntity.LastName = childEntity.LastName;
+            tableEntity.Nationality = childEntity.Nationality;
+            tableEntity.MotherTelephone = childEntity.MotherTelephone;
+            
+            
+            tableClient.UpdateEntity(tableEntity, tableEntity.ETag);
         }
 
 

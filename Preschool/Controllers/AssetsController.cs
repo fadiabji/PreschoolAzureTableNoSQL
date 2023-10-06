@@ -19,12 +19,10 @@ namespace Preschool.Controllers
     [Authorize(Roles = ("Admin"))]
     public class AssetsController : Controller
     {
-        private readonly IAssetsService _assetsService;
         private readonly IStorgeAssetService _storgeAssetService;
 
-        public AssetsController(IAssetsService assetsService,IStorgeAssetService storgeAssetService)
+        public AssetsController(IStorgeAssetService storgeAssetService)
         {
-            _assetsService = assetsService;
             _storgeAssetService = storgeAssetService;
         }
 

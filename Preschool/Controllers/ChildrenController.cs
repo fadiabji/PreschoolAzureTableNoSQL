@@ -23,20 +23,16 @@ namespace Preschool.Controllers
     [Authorize(Roles = "Admin,Teacher")]
     public class ChildrenController : Controller
     {
-        private readonly IChildService _childrenService;
-        private readonly IClassroomService _classroomService;
-        private readonly ISubscriptionTypeService _subscriptionTypeService;
         private readonly IStorgeChildService _storgeChildService;
 
-        public ChildrenController( IChildService childService, 
-                                   IClassroomService classroomService, 
-                                   ISubscriptionTypeService subscriptionTypeService,
-                                   IStorgeChildService storgeChildService)
+        private readonly IStorgeClassroomService _storgeClassroomService;
+        
+
+        public ChildrenController( IStorgeChildService storgeChildService,
+                                   IStorgeClassroomService storgeClassroomService)
         {
-            _childrenService = childService;
-            _classroomService = classroomService;
-            _subscriptionTypeService = subscriptionTypeService;
-            _storgeChildService = storgeChildService;   
+            _storgeChildService = storgeChildService;
+            _storgeClassroomService = storgeClassroomService;
         }
 
         public async Task<IActionResult> ChildPage(int? id)
@@ -61,7 +57,7 @@ namespace Preschool.Controllers
 
         public async Task<IActionResult> AttendencePage()
         {
-            var classroomsList = await _classroomService.GetClasses();
+            List<Classroom> classroomsList = await Task.Run(()=> Conversions.ToClassrooms(_storgeClassroomService.GetClassroomEntities()));
             if (classroomsList != null)
             {
                 return View(classroomsList);
@@ -74,7 +70,8 @@ namespace Preschool.Controllers
 
         public async Task<IActionResult> GetChildByClassRoom(int id)
         {
-            var childernlist = await _childrenService.GetChildByClassroomId(id);
+            //var childernlist = await _childrenService.GetChildByClassroomId(id);
+            var childernlist = (await Task.Run(() => Conversions.ToChildren(_storgeChildService.GetChildEntities()))).Where(c => c.ClassroomId == id).ToList();
             if (childernlist != null)
             {
                 return View(childernlist);
@@ -95,7 +92,8 @@ namespace Preschool.Controllers
                 if (sub.ExpireAt.Date < DateTime.Now.Date)
                 {
                     sub.IsActive = false;
-                    _childrenService.UpdateChildEnrollment(child);
+                    /*_childrenService.UpdateChildEnrollment(child)*/;
+                    _storgeChildService.UpdateChildEntity(Conversions.ToChildEntity(child));
                 }
             }
         }
@@ -133,8 +131,7 @@ namespace Preschool.Controllers
  
         public IActionResult Create()
         {
-            ViewData["ClassId"] = new SelectList(_classroomService.GetClasses().Result, "Id", "Name");
-            //ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name");
+            ViewData["ClassId"] = new SelectList(Conversions.ToClassrooms(_storgeClassroomService.GetClassroomEntities()), "Id", "Name");
             ChildVM chlidVm = new();
             return View(chlidVm);
         }
@@ -145,6 +142,7 @@ namespace Preschool.Controllers
         public async Task<IActionResult> Create(List<IFormFile> DocumentCopies, ChildVM childVm)
         {
             Child child = Conversions.ToChild(childVm);
+            child.Classroom = Conversions.ToClassroom(_storgeClassroomService.GetClassroomEntityById(childVm.ClassroomId));
 
             if (ModelState.IsValid && DocumentCopies != null)
             {
@@ -158,7 +156,7 @@ namespace Preschool.Controllers
                     {
                         child.DocumentsImage = new List<DocumentsCopies>();
                     }
-                    child.DocumentsImage.Add(new DocumentsCopies { ImageFile = img.FileName });
+                    child.DocumentsImage.Add(new DocumentsCopies { Id = new Random().Next(0,100000), ImageFile = img.FileName });
                 }
 
                 //await Task.Run(() => _childrenService.EnrollChild(child));
@@ -192,8 +190,7 @@ namespace Preschool.Controllers
             {
                 childVm.DocumentCopies.Add(docuemnt.ImageFile);
             }
-            ViewData["ClassId"] = new SelectList(_classroomService.GetClasses().Result, "Id", "Name");
-            //ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name");
+            ViewData["ClassId"] = new SelectList(Conversions.ToClassrooms(_storgeClassroomService.GetClassroomEntities()), "Id", "Name");
 
             return View(childVm);
         }
@@ -202,16 +199,13 @@ namespace Preschool.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,  ChildVM childvm, List<IFormFile> DocumentCopies)
         {
-            //var child = _childrenService.GetChildById(id).Result;
-            Child child = await Task.Run(() => Conversions.ToChild(_storgeChildService.GetChildEntityById(id)));
+            var oldChildDocuments = (await Task.Run(() => 
+                    Conversions.ToChild(_storgeChildService.GetChildEntityById(id)))).DocumentsImage.ToList();
+            Child child = Conversions.ToChild(childvm);
+            child.DocumentsImage = oldChildDocuments;
+            child.Classroom = Conversions.ToClassroom(_storgeClassroomService.GetClassroomEntityById(childvm.ClassroomId));
 
 
-            child = Conversions.ToChild(childvm);
-
-            var oldChildDocuments = child.DocumentsImage.ToList();
-
-
-            //child.Subscriptions.Where(s => s.ChildId == childvm.Id).ToList().ForEach(s => s.SubscriptionTypeId = childvm.SubscriptionTypeId);
             if (id != child.Id)
             {
                 return NotFound();
@@ -237,7 +231,6 @@ namespace Preschool.Controllers
                         }
                         
                     }
-                    //await Task.Run(() => _childrenService.UpdateChildEnrollment(child));
                     _storgeChildService.UpdateChildEntity(Conversions.ToChildEntity(child));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -261,7 +254,6 @@ namespace Preschool.Controllers
         {
             try
             {
-                //var child = await _childrenService.GetChildById(id);
                 Child child = await Task.Run(() => Conversions.ToChild(_storgeChildService.GetChildEntityById(id)));
 
                 if (child == null)
@@ -284,12 +276,10 @@ namespace Preschool.Controllers
         {
             try
             {
-                //var child = await _childrenService.GetChildById(id);
                 Child child = await Task.Run(() => Conversions.ToChild(_storgeChildService.GetChildEntityById(id)));
 
                 if (ChildExists(id))
                 {
-                    //_childrenService.RemoveChild(child);
                     _storgeChildService.DeleteChildEntity(Conversions.ToChildEntity(child));
                 }
                 return RedirectToAction(nameof(Index));
@@ -304,62 +294,10 @@ namespace Preschool.Controllers
 
         private bool ChildExists(int id)
         {
-            //return _childrenService.IsExists(id) != null;
             return _storgeChildService.IsChildExists(id);
         }
 
 
 
-
-
-        //public async Task<IActionResult> ReNewSubscription(int id)
-        //{
-        //    try
-        //    {
-        //        var child = await _childrenService.GetChildById(id);
-        //        CheckSubscriptionsExpireDateToExpire(child);
-        //        if(child.Subscriptions.Any(s =>s.IsActive == true))
-        //        {
-        //            return RedirectToAction("Index");
-        //        }
-        //        else
-        //        {
-        //            var renewsub = new ChildReNewSubscriptionVM { ChildId = id, ClassroomId = child.ClassroomId, SubscriptionTypId = child.Subscriptions.FirstOrDefault().SubscriptionTypeId };
-        //            ViewData["ClassId"] = new SelectList(_classroomService.GetClasses().Result, "Id", "Name");
-        //            ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name");
-        //            return View(renewsub);
-        //        }
-
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> ReNewSubscription(ChildReNewSubscriptionVM renewsub)
-        //{
-        //    try
-        //    {
-        //        var child = await _childrenService.GetChildById(renewsub.ChildId);
-        //        child.ClassroomId = renewsub.ClassroomId;
-        //        child.Subscriptions.Add(new Subscription
-        //                                   {
-        //                                       SubscriptionTypeId = renewsub.SubscriptionTypId,
-        //                                       IsActive = true,
-        //                                       CreatedAt = DateTime.Now,
-        //                                       ExpireAt = DateTime.Now.AddMonths(_subscriptionTypeService.GetSubscriptionTypeById(renewsub.SubscriptionTypId).Result.DurationMonth),
-        //                                       PaymentComplete = true
-        //                                   });
-
-        //        await Task.Run(() => _childrenService.UpdateChildEnrollment(child));
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
     }
 }
