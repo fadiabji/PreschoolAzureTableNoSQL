@@ -217,5 +217,77 @@ namespace Preschool.Extentions
         }
 
 
+        public static TeacherEntity ToTeacherEntity(Teacher teacher)
+        {
+            return new TeacherEntity()
+            {
+                PartitionKey = teacher.FirstName,
+                RowKey = teacher.Id.ToString(),
+                Id = teacher.Id,
+                FirstName = teacher.FirstName,
+                LastName = teacher.LastName,
+                DateOfBirth = DateTime.SpecifyKind(teacher.DateOfBirth, DateTimeKind.Utc),
+                RegistedAt = DateTime.SpecifyKind(teacher.RegistedAt, DateTimeKind.Utc),
+                ClassroomId = teacher.ClassroomId,
+                ClassroomJson = JsonConvert.SerializeObject(teacher.Classroom),
+                DocumentsImagesJson = JsonConvert.SerializeObject(teacher.DocumentsImage),
+            };
+        }
+
+        public static Teacher ToTeacher(TeacherEntity teacherEntity)
+        {
+            return new Teacher
+            {
+                Id = teacherEntity.Id,
+                FirstName = teacherEntity.FirstName,
+                LastName = teacherEntity.LastName,       
+                DateOfBirth = teacherEntity.DateOfBirth,
+                RegistedAt = teacherEntity.RegistedAt,
+                ClassroomId = teacherEntity.ClassroomId,
+                Classroom = JsonConvert.DeserializeObject<Classroom>(teacherEntity.ClassroomJson),
+                DocumentsImage = JsonConvert.DeserializeObject<List<DocumentsCopies>>(teacherEntity.DocumentsImagesJson),
+
+
+            };
+        }
+
+
+        public static TeacherVM ToTeacherVM(Teacher teacher)
+        {
+            return new TeacherVM()
+            {
+                Id = teacher.Id,
+                FirstName = teacher.FirstName,
+                LastName = teacher.LastName,
+                DateOfBirth = teacher.DateOfBirth,
+                RegistedAt = teacher.RegistedAt,
+                IsActive = teacher.IsActive,
+                ClassroomId = teacher.ClassroomId,
+            };
+        }
+
+
+        public static List<Teacher> ToTeachers(List<TeacherEntity> teacherEntities)
+        {
+            var result = new List<Teacher>();
+            foreach (TeacherEntity teacherEntity in teacherEntities)
+            {
+                result.Add(Conversions.ToTeacher(teacherEntity));
+            }
+            return result;
+
+        }
+
+        public static List<TeacherEntity> ToTeacherrenEntities(List<Teacher> teachers)
+        {
+            var result = new List<TeacherEntity>();
+            foreach (Teacher teacher in teachers)
+            {
+                result.Add(Conversions.ToTeacherEntity(teacher));
+            }
+            return result;
+
+        }
+
     }
 }
