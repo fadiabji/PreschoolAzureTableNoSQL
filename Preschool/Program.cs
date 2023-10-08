@@ -40,7 +40,7 @@ builder.Services.AddScoped<IStorgeChildService, StorgeChildService>();
 builder.Services.AddScoped<IStorgeAssetService, StorgeAssetService>();
 builder.Services.AddScoped<IStorgeAttendanceService, StorgeAttendanceService>();
 builder.Services.AddScoped<IStorgeClassroomService, StorgeClassroomService>();
-
+builder.Services.AddScoped<IStorgeTeacherService, StorgeTeacherService>();
 
 
 var app = builder.Build();

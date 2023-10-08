@@ -35,6 +35,6 @@ namespace Preschool.Models.Entities
         [Required]
         public bool Status { get; set; } = false;  // true for present, false for absent
 
-        public string Child { get; set; }
+        public string ChildJson { get; set; }
     }
 }

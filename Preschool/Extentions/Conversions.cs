@@ -27,7 +27,12 @@ namespace Preschool.Extentions
                 ClassroomJosn = JsonConvert.SerializeObject(childModel.Classroom),
                 SubscriptionsJson = JsonConvert.SerializeObject(childModel.Subscriptions),
                 DocumentsImageJson= JsonConvert.SerializeObject(childModel.DocumentsImage),
-                AttendancesJson = JsonConvert.SerializeObject(childModel.Attendances),
+                AttendancesJson = JsonConvert.SerializeObject(childModel.Attendances,
+                                                                new JsonSerializerSettings
+                                                                {
+                                                                    ReferenceLoopHandling = 
+                                                                    ReferenceLoopHandling.Ignore,
+                                                                }),
                 InvoicesJson = JsonConvert.SerializeObject(childModel.Invoices),
             };
         }
@@ -217,5 +222,107 @@ namespace Preschool.Extentions
         }
 
 
+        public static TeacherEntity ToTeacherEntity(Teacher teacher)
+        {
+            return new TeacherEntity()
+            {
+                PartitionKey = teacher.FirstName,
+                RowKey = teacher.Id.ToString(),
+                Id = teacher.Id,
+                FirstName = teacher.FirstName,
+                LastName = teacher.LastName,
+                DateOfBirth = DateTime.SpecifyKind(teacher.DateOfBirth, DateTimeKind.Utc),
+                RegistedAt = DateTime.SpecifyKind(teacher.RegistedAt, DateTimeKind.Utc),
+                ClassroomId = teacher.ClassroomId,
+                ClassroomJson = JsonConvert.SerializeObject(teacher.Classroom),
+                DocumentsImagesJson = JsonConvert.SerializeObject(teacher.DocumentsImage),
+            };
+        }
+
+        public static Teacher ToTeacher(TeacherEntity teacherEntity)
+        {
+            return new Teacher
+            {
+                Id = teacherEntity.Id,
+                FirstName = teacherEntity.FirstName,
+                LastName = teacherEntity.LastName,       
+                DateOfBirth = teacherEntity.DateOfBirth,
+                RegistedAt = teacherEntity.RegistedAt,
+                ClassroomId = teacherEntity.ClassroomId,
+                Classroom = JsonConvert.DeserializeObject<Classroom>(teacherEntity.ClassroomJson),
+                DocumentsImage = JsonConvert.DeserializeObject<List<DocumentsCopies>>(teacherEntity.DocumentsImagesJson),
+
+
+            };
+        }
+
+
+        public static TeacherVM ToTeacherVM(Teacher teacher)
+        {
+            return new TeacherVM()
+            {
+                Id = teacher.Id,
+                FirstName = teacher.FirstName,
+                LastName = teacher.LastName,
+                DateOfBirth = teacher.DateOfBirth,
+                RegistedAt = teacher.RegistedAt,
+                IsActive = teacher.IsActive,
+                ClassroomId = teacher.ClassroomId,
+            };
+        }
+
+
+        public static List<Teacher> ToTeachers(List<TeacherEntity> teacherEntities)
+        {
+            var result = new List<Teacher>();
+            foreach (TeacherEntity teacherEntity in teacherEntities)
+            {
+                result.Add(Conversions.ToTeacher(teacherEntity));
+            }
+            return result;
+
+        }
+
+        public static List<TeacherEntity> ToTeacherrenEntities(List<Teacher> teachers)
+        {
+            var result = new List<TeacherEntity>();
+            foreach (Teacher teacher in teachers)
+            {
+                result.Add(Conversions.ToTeacherEntity(teacher));
+            }
+            return result;
+
+        }
+
+
+        public static AttendanceEntity ToAttendanceEntity(Attendance attendances)
+        {
+            return new AttendanceEntity()
+            {
+                PartitionKey = attendances.Status.ToString(),
+                RowKey = attendances.Id.ToString(),
+                Id = attendances.Id,
+                Date = DateTime.SpecifyKind(attendances.Date, DateTimeKind.Utc),
+                Status = attendances.Status,
+                ChildId = attendances.ChildId,
+                ChildJson = JsonConvert.SerializeObject(attendances.Child,
+                                                        new JsonSerializerSettings
+                                                            {
+                                                                ReferenceLoopHandling = 
+                                                                ReferenceLoopHandling.Ignore,
+                                                            }),
+            };
+        }
+
+        public static Attendance ToAttendance(AttendanceEntity attendancesEntity)
+        {
+            return new Attendance()
+            {
+                Id = attendancesEntity.Id,
+                Status = attendancesEntity.Status,
+                ChildId = attendancesEntity.ChildId,
+                Child = JsonConvert.DeserializeObject<Child>(attendancesEntity.ChildJson),
+            };
+        }
     }
 }

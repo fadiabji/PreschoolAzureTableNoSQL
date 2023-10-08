@@ -15,6 +15,8 @@ using Preschool.Services;
 using Microsoft.AspNetCore.Identity;
 using Preschool.Services.EntitiesServices;
 using Preschool.Extentions;
+//using AspNetCore;
+using NuGet.DependencyResolver;
 
 namespace Preschool.Controllers
 {
@@ -22,33 +24,44 @@ namespace Preschool.Controllers
     [Authorize(Roles = "Admin,Teacher")]
     public class TeachersController : Controller
     {
-        private readonly ITeacherService _teacherService;
+        //private readonly ITeacherService _teacherService;
         private readonly IClassroomService _classroomService;
         private readonly IAttendanceService _attendanceService;
         private readonly IChildService _childService;
         private UserManager<IdentityUser> _userManager;
 
+        private readonly IStorgeTeacherService _storgeTeacherService;
+
         private readonly IStorgeChildService _storgeChildService;
 
-        public TeachersController(ITeacherService teacherService,
-                                  IClassroomService classroomService,
+        private readonly IStorgeClassroomService _storgeClassroomService;
+
+        private readonly IStorgeAttendanceService _storgeAttendanceService;
+
+        public TeachersController(IClassroomService classroomService,
                                   IAttendanceService attendanceService,
                                   IChildService childService,
                                   UserManager<IdentityUser> userManager,
-                                   IStorgeChildService storgeChildService)
+                                   IStorgeChildService storgeChildService,
+                                   IStorgeTeacherService storgeTeacherService,
+                                   IStorgeClassroomService storgeClassroomService,
+                                   IStorgeAttendanceService storgeAttendanceService)
         {
-            _teacherService = teacherService;
             _classroomService = classroomService;
             _attendanceService = attendanceService;
             _childService = childService;
             _userManager = userManager;
             _storgeChildService = storgeChildService;
+            _storgeTeacherService = storgeTeacherService;
+            _storgeClassroomService = storgeClassroomService;
+            _storgeAttendanceService = storgeAttendanceService;
         }
 
         // GET: Teacherren
         public async Task<IActionResult> Index()
         {
-            return View(await _teacherService.GetTeachers());
+            return View(await Task.Run(() => Conversions.ToTeachers(_storgeTeacherService.GetTeacherEntities())));
+
         }
 
 
@@ -60,7 +73,7 @@ namespace Preschool.Controllers
                 {
                     return NotFound();
                 }
-                Teacher teacher = await _teacherService.GetTeacherById(id);
+                Teacher teacher = await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(id)));
                 if (teacher == null)
                 {
                     return NotFound();
@@ -75,34 +88,6 @@ namespace Preschool.Controllers
 
         }
 
-        //public async Task<IActionResult> TeacherPage()
-        //{
-        //    try
-        //    {
-        //        if (User == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        if (User.IsInRole("Teacher"))
-        //        {
-        //            string email = User.Identity.Name;
-        //            var usr = _userManager.FindByEmailAsync(email).Result;
-
-        //        }
-        //        Teacher teacher = await _teacherService.GetTeacherById(id);
-        //        if (teacher == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        return View(teacher);
-
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-
-        //}
 
         public async Task<IActionResult> GetChildByClassRoom(int? teacherId)
         {
@@ -112,7 +97,7 @@ namespace Preschool.Controllers
                 {
                     return NotFound();
                 }
-                Teacher teacher = await _teacherService.GetTeacherById(teacherId);
+                Teacher teacher =  await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(teacherId)));
                 if (teacher == null)
                 {
                     return NotFound();
@@ -143,12 +128,25 @@ namespace Preschool.Controllers
                 {
                     return NotFound();
                 }
-                child.Attendances.Add(new Attendance { ChildId = id, Date = DateTime.Now, Status = true }); ;
-                //_childService.UpdateChildEnrollment(child);
+                if(child.Attendances == null)
+                {
+                    child.Attendances = new List<Attendance>();
+                }
+                Attendance attencdanceToAdd = new Attendance
+                {
+                    Id = new Random().Next(0, 100000),
+                    ChildId = id,
+                    Date = DateTime.Now,
+                    Status = true,
+                    Child = child
+                };
+                child.Attendances.Add(attencdanceToAdd);
+                _storgeAttendanceService.AddAttendanceToTable(Conversions.ToAttendanceEntity(attencdanceToAdd)); 
+
+                
                 _storgeChildService.UpdateChildEntity(Conversions.ToChildEntity(child));
 
-                //return RedirectToAction(nameof(GetChildByClassRoom), new { teacherId = id });
-                return Ok($"{child.FirstName + child.LastName} Checked In");
+                return Ok($"{child.FullName} Checked In");
 
             }
             catch (Exception)
@@ -166,17 +164,26 @@ namespace Preschool.Controllers
                 {
                     return NotFound();
                 }
-                //Child child = await _childService.GetChildById(id);
+               
                 Child child = await Task.Run(() => Conversions.ToChild(_storgeChildService.GetChildEntityById(id)));
                 if (child == null)
                 {
                     return NotFound();
                 }
-                child.Attendances.Add(new Attendance { ChildId = id, Date = DateTime.Now, Status = false }); ;
-                //_childService.UpdateChildEnrollment(child);
+                Attendance attencdanceToAdd = new Attendance
+                {
+                    Id = new Random().Next(0, 100000),
+                    ChildId = id,
+                    Date = DateTime.Now,
+                    Status = false,
+                    Child = child
+                };
+                _storgeAttendanceService.AddAttendanceToTable(Conversions.ToAttendanceEntity(attencdanceToAdd));
+
+                child.Attendances.Add(attencdanceToAdd);
+
                 _storgeChildService.UpdateChildEntity(Conversions.ToChildEntity(child));
 
-                //return RedirectToAction(nameof(GetChildByClassRoom), new { teacherId = id });
                 return Ok($"{child.FirstName} {child.LastName} Checked Out");
 
             }
@@ -190,12 +197,12 @@ namespace Preschool.Controllers
         // GET: Teacherren/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _teacherService.GetTeachers() == null)
+            if (id == null )
             {
                 return NotFound();
             }
 
-            var teacher = await _teacherService.GetTeacherById(id);
+            var teacher = await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(id)));
             if (teacher == null)
             {
                 return NotFound();
@@ -208,20 +215,18 @@ namespace Preschool.Controllers
         public IActionResult Create()
         {
 
-            ViewData["ClassId"] = new SelectList( _classroomService.GetClasses().Result, "Id", "Name");
+            ViewData["ClassId"] = new SelectList(Conversions.ToClassrooms(_storgeClassroomService.GetClassroomEntities()), "Id", "Name");
             return View();
         }
 
-        // POST: Teacherren/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(List<IFormFile> DocumentCopies, Teacher teacher)
         {
+            teacher.Classroom = Conversions.ToClassroom(_storgeClassroomService.GetClassroomEntityById(teacher.ClassroomId));
             if (ModelState.IsValid && DocumentCopies != null)
             {
-
                 foreach (var img in DocumentCopies)
                 {
                     string fileName = img.FileName;
@@ -232,15 +237,12 @@ namespace Preschool.Controllers
                     {
                         teacher.DocumentsImage = new List<DocumentsCopies>();
                     }
-                    teacher.DocumentsImage.Add(new DocumentsCopies { ImageFile = img.FileName });
+                    teacher.DocumentsImage.Add(new DocumentsCopies { Id = new Random().Next(0, 100000), ImageFile = img.FileName });
                 }
-
-
-                await Task.Run(() => _teacherService.RegistTeacher(teacher));
-
+                await Task.Run(() => _storgeTeacherService.AddTeacherToTable(Conversions.ToTeacherEntity(teacher)));
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClassroomId"] = new SelectList(await Task.Run(() => _classroomService.GetClasses().Result), "Id", "Name", teacher.ClassroomId);
+            ViewData["ClassroomId"] = new SelectList(Conversions.ToClassrooms(_storgeClassroomService.GetClassroomEntities()), "Id", "Name", teacher.ClassroomId);
             return View(teacher);
         }
 
@@ -253,38 +255,27 @@ namespace Preschool.Controllers
         {
            
 
-            var teacher = await _teacherService.GetTeacherById(id);
+            var teacher = await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(id)));
             if (teacher == null)
             {
                 return NotFound();
             }
-            TeacherVM teacherVm = new TeacherVM()
-            {
-                Id = teacher.Id,
-                FirstName = teacher.FirstName,
-                LastName = teacher.LastName,
-                DateOfBirth = teacher.DateOfBirth,
-                RegistedAt = teacher.RegistedAt,
-                IsActive = teacher.IsActive,
-                ClassroomId = teacher.ClassroomId,  
-            };
+            TeacherVM teacherVm = Conversions.ToTeacherVM(teacher);
 
             foreach (var docuemnt in teacher.DocumentsImage)
             {
                 teacherVm.DocumentCopies.Add(docuemnt.ImageFile);
             }
-            ViewData["ClassId"] = new SelectList(_classroomService.GetClasses().Result, "Id", "Name");
+            ViewData["ClassId"] = new SelectList(Conversions.ToClassrooms(_storgeClassroomService.GetClassroomEntities()), "Id", "Name");
             return View(teacherVm);
         }
 
-        // POST: Teacherren/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, TeacherVM teachervm, List<IFormFile> DocumentCopies)
         {
-            var teacher = _teacherService.GetTeacherById(id).Result;
+            var teacher = await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(id)));
             teacher.Id = teachervm.Id;
             teacher.FirstName = teachervm.FirstName;
             teacher.LastName = teachervm.LastName;
@@ -292,6 +283,7 @@ namespace Preschool.Controllers
             teacher.IsActive = teachervm.IsActive;
             teacher.ClassroomId = teachervm.ClassroomId;
             var oldTeacherDocuments = teacher.DocumentsImage.ToList();
+            teacher.Classroom = Conversions.ToClassroom(_storgeClassroomService.GetClassroomEntityById(teacher.ClassroomId));
 
             if (id != teacher.Id)
             {
@@ -317,7 +309,8 @@ namespace Preschool.Controllers
                             teacher.DocumentsImage.Add(new DocumentsCopies { ImageFile = img.FileName });
                         }
                     }
-                    await Task.Run(() => _teacherService.UpdateTeacherRegistration(teacher));
+                    //await Task.Run(() => _teacherService.UpdateTeacherRegistration(teacher));
+                    _storgeTeacherService.UpdateTeacherEntity(Conversions.ToTeacherEntity(teacher));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -340,7 +333,9 @@ namespace Preschool.Controllers
         {
             try
             {
-                var teacher = await _teacherService.GetTeacherById(id);
+                //var teacher = await _teacherService.GetTeacherById(id);
+                var teacher = await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(id)));
+
                 if (teacher == null)
                 {
                     return NotFound();
@@ -361,10 +356,12 @@ namespace Preschool.Controllers
         {
             try
             {
-                var teacher = await _teacherService.GetTeacherById(id);
-                if (_teacherService.IsExists(id))
+                var teacher = await Task.Run(() => Conversions.ToTeacher(_storgeTeacherService.GetTeacherEntityById(id)));
+
+                if (TeacherExists(teacher.Id))
                 {
-                    _teacherService.RemoveTeacher(teacher);
+                    //_teacherService.RemoveTeacher(teacher);
+                    _storgeTeacherService.DeleteTeacherEntity(Conversions.ToTeacherEntity(teacher));
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -378,7 +375,41 @@ namespace Preschool.Controllers
 
         private bool TeacherExists(int id)
         {
-            return _teacherService.GetTeacherById(id) != null;
+            //return _teacherService.GetTeacherById(id) != null;
+            return Conversions.ToTeachers(_storgeTeacherService.GetTeacherEntities()).Any(t => t.Id == id);
         }
+
+
+
+
+
+        //public async Task<IActionResult> TeacherPage()
+        //{
+        //    try
+        //    {
+        //        if (User == null)
+        //        {
+        //            return NotFound();
+        //        }
+        //        if (User.IsInRole("Teacher"))
+        //        {
+        //            string email = User.Identity.Name;
+        //            var usr = _userManager.FindByEmailAsync(email).Result;
+
+        //        }
+        //        Teacher teacher = await _teacherService.GetTeacherById(id);
+        //        if (teacher == null)
+        //        {
+        //            return NotFound();
+        //        }
+        //        return View(teacher);
+
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw;
+        //    }
+
+        //}
     }
 }
