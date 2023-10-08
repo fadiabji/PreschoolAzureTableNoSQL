@@ -27,7 +27,12 @@ namespace Preschool.Extentions
                 ClassroomJosn = JsonConvert.SerializeObject(childModel.Classroom),
                 SubscriptionsJson = JsonConvert.SerializeObject(childModel.Subscriptions),
                 DocumentsImageJson= JsonConvert.SerializeObject(childModel.DocumentsImage),
-                AttendancesJson = JsonConvert.SerializeObject(childModel.Attendances),
+                AttendancesJson = JsonConvert.SerializeObject(childModel.Attendances,
+                                                                new JsonSerializerSettings
+                                                                {
+                                                                    ReferenceLoopHandling = 
+                                                                    ReferenceLoopHandling.Ignore,
+                                                                }),
                 InvoicesJson = JsonConvert.SerializeObject(childModel.Invoices),
             };
         }
@@ -289,5 +294,35 @@ namespace Preschool.Extentions
 
         }
 
+
+        public static AttendanceEntity ToAttendanceEntity(Attendance attendances)
+        {
+            return new AttendanceEntity()
+            {
+                PartitionKey = attendances.Status.ToString(),
+                RowKey = attendances.Id.ToString(),
+                Id = attendances.Id,
+                Date = DateTime.SpecifyKind(attendances.Date, DateTimeKind.Utc),
+                Status = attendances.Status,
+                ChildId = attendances.ChildId,
+                ChildJson = JsonConvert.SerializeObject(attendances.Child,
+                                                        new JsonSerializerSettings
+                                                            {
+                                                                ReferenceLoopHandling = 
+                                                                ReferenceLoopHandling.Ignore,
+                                                            }),
+            };
+        }
+
+        public static Attendance ToAttendance(AttendanceEntity attendancesEntity)
+        {
+            return new Attendance()
+            {
+                Id = attendancesEntity.Id,
+                Status = attendancesEntity.Status,
+                ChildId = attendancesEntity.ChildId,
+                Child = JsonConvert.DeserializeObject<Child>(attendancesEntity.ChildJson),
+            };
+        }
     }
 }

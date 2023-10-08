@@ -36,13 +36,16 @@ namespace Preschool.Controllers
 
         private readonly IStorgeClassroomService _storgeClassroomService;
 
+        private readonly IStorgeAttendanceService _storgeAttendanceService;
+
         public TeachersController(IClassroomService classroomService,
                                   IAttendanceService attendanceService,
                                   IChildService childService,
                                   UserManager<IdentityUser> userManager,
                                    IStorgeChildService storgeChildService,
                                    IStorgeTeacherService storgeTeacherService,
-                                   IStorgeClassroomService storgeClassroomService)
+                                   IStorgeClassroomService storgeClassroomService,
+                                   IStorgeAttendanceService storgeAttendanceService)
         {
             _classroomService = classroomService;
             _attendanceService = attendanceService;
@@ -51,6 +54,7 @@ namespace Preschool.Controllers
             _storgeChildService = storgeChildService;
             _storgeTeacherService = storgeTeacherService;
             _storgeClassroomService = storgeClassroomService;
+            _storgeAttendanceService = storgeAttendanceService;
         }
 
         // GET: Teacherren
@@ -124,12 +128,25 @@ namespace Preschool.Controllers
                 {
                     return NotFound();
                 }
-                child.Attendances.Add(new Attendance { ChildId = id, Date = DateTime.Now, Status = true }); ;
+                if(child.Attendances == null)
+                {
+                    child.Attendances = new List<Attendance>();
+                }
+                Attendance attencdanceToAdd = new Attendance
+                {
+                    Id = new Random().Next(0, 100000),
+                    ChildId = id,
+                    Date = DateTime.Now,
+                    Status = true,
+                    Child = child
+                };
+                child.Attendances.Add(attencdanceToAdd);
+                _storgeAttendanceService.AddAttendanceToTable(Conversions.ToAttendanceEntity(attencdanceToAdd)); 
+
                 
                 _storgeChildService.UpdateChildEntity(Conversions.ToChildEntity(child));
 
-                
-                return Ok($"{child.FirstName + child.LastName} Checked In");
+                return Ok($"{child.FullName} Checked In");
 
             }
             catch (Exception)
@@ -153,8 +170,18 @@ namespace Preschool.Controllers
                 {
                     return NotFound();
                 }
-                child.Attendances.Add(new Attendance { ChildId = id, Date = DateTime.Now, Status = false }); ;
-                
+                Attendance attencdanceToAdd = new Attendance
+                {
+                    Id = new Random().Next(0, 100000),
+                    ChildId = id,
+                    Date = DateTime.Now,
+                    Status = false,
+                    Child = child
+                };
+                _storgeAttendanceService.AddAttendanceToTable(Conversions.ToAttendanceEntity(attencdanceToAdd));
+
+                child.Attendances.Add(attencdanceToAdd);
+
                 _storgeChildService.UpdateChildEntity(Conversions.ToChildEntity(child));
 
                 return Ok($"{child.FirstName} {child.LastName} Checked Out");

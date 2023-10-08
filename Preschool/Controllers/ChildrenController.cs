@@ -74,6 +74,10 @@ namespace Preschool.Controllers
             var childernlist = (await Task.Run(() => Conversions.ToChildren(_storgeChildService.GetChildEntities()))).Where(c => c.ClassroomId == id).ToList();
             if (childernlist != null)
             {
+                foreach(var child in childernlist)
+                {
+                    if(child.Attendances == null) { child.Attendances = new List<Attendance>(); }
+                }
                 return View(childernlist);
             }
             else

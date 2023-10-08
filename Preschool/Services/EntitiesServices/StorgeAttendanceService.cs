@@ -21,10 +21,8 @@ namespace Preschool.Services.EntitiesServices
         {
             TableClient tableClient = _tableServiceClient.GetTableClient(tableName: "AttendancesTable");
             tableClient.CreateIfNotExists();
-            attendanceEntity.Id = random.Next(0, 10000000);
             attendanceEntity.RowKey = attendanceEntity.Id.ToString();
             await tableClient.AddEntityAsync(attendanceEntity);
-
         }
 
         public List<AttendanceEntity> GetAttendanceEntities()
