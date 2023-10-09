@@ -6,7 +6,6 @@ namespace Preschool.Models
 {
     public class SubscriptionType
     {
-
         [Key]
         public int Id { get; set; }
 
@@ -23,9 +22,8 @@ namespace Preschool.Models
         public decimal Price { get; set; }
 
         public virtual ICollection<Invoice> Invoices { get; set; }
+
         public virtual ICollection<InvoiceSubscriptionType> InvoiceSubscriptionType { get; set; }
-
-
 
         public SubscriptionType()
         {

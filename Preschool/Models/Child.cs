@@ -79,6 +79,10 @@ namespace Preschool.Models
         public Child()
         {
             Subscriptions = new List<Subscription>();
+            Invoices = new List<Invoice>();
+            Attendances = new List<Attendance>();
+            DocumentsImage = new List<DocumentsCopies>();
+
         }
         
 

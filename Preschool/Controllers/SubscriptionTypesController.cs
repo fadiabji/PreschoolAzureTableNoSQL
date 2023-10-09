@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Preschool.Data;
+using Preschool.Extentions;
 using Preschool.Models;
 using Preschool.Services;
+using Preschool.Services.EntitiesServices;
 
 namespace Preschool.Controllers
 {
@@ -17,15 +19,20 @@ namespace Preschool.Controllers
     {
         private readonly ISubscriptionTypeService _subscriptionTypeService;
 
-        public SubscriptionTypesController(ISubscriptionTypeService subscriptionTypeService)
+        private readonly IStorgeSubscriptionTypeService _storgeSubscriptionTypeService;
+
+        public SubscriptionTypesController(ISubscriptionTypeService subscriptionTypeService,
+                                            IStorgeSubscriptionTypeService storgeSubscriptionTypeService)
         {
             _subscriptionTypeService = subscriptionTypeService;
+            _storgeSubscriptionTypeService = storgeSubscriptionTypeService;
         }
 
         // GET: SubscriptionTypes
         public async Task<IActionResult> Index()
         {
-              return View(await _subscriptionTypeService.GetSubscriptionTypes());
+            return View( await Task.Run(()=>
+            Conversions.ToSubscriptionTypes(_storgeSubscriptionTypeService.GetSubscriptionTypeEntities())));
         }
 
         // GET: SubscriptionTypes/Details/5
@@ -34,7 +41,9 @@ namespace Preschool.Controllers
 
             try
             {
-                var subscriptionType = await  _subscriptionTypeService.GetSubscriptionTypeById(id);
+                var subscriptionType =  await Task.Run(() =>
+                Conversions.ToSubscriptionType(_storgeSubscriptionTypeService.GetSubscriptionTypeEntityById(id)));
+
                 if (subscriptionType == null)
                 {
                     return NotFound();
@@ -55,16 +64,16 @@ namespace Preschool.Controllers
             return View();
         }
 
-        // POST: SubscriptionTypes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+     
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SubscriptionType subscriptionType)
         {
             if (ModelState.IsValid)
             {
-                await Task.Run(()=> _subscriptionTypeService.AddSubscriptionType(subscriptionType));
+                await Task.Run(() => 
+                _storgeSubscriptionTypeService.AddSubscriptionTypeToTable(
+                                                Conversions.ToSubscriptionTypeEntity(subscriptionType)));
                 return RedirectToAction(nameof(Index));
             }
             return View(subscriptionType);
@@ -73,12 +82,14 @@ namespace Preschool.Controllers
         // GET: SubscriptionTypes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null ||  _subscriptionTypeService.GetSubscriptionTypes() == null)
+            if (id == null)
             {
                 return NotFound();
             }
+            //var subscriptionType = await  _subscriptionTypeService.GetSubscriptionTypeById(id);
+            var subscriptionType = await Task.Run(() => 
+            Conversions.ToSubscriptionType(_storgeSubscriptionTypeService.GetSubscriptionTypeEntityById(id)));
 
-            var subscriptionType = await  _subscriptionTypeService.GetSubscriptionTypeById(id);
             if (subscriptionType == null)
             {
                 return NotFound();
@@ -86,9 +97,7 @@ namespace Preschool.Controllers
             return View(subscriptionType);
         }
 
-        // POST: SubscriptionTypes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,SubscriptionType subscriptionType)
@@ -102,7 +111,12 @@ namespace Preschool.Controllers
             {
                 try
                 {
-                   await Task.Run(()=> _subscriptionTypeService.UpdateSubscriptionTypeRegistration(subscriptionType));
+                   //await Task.Run(()=> _subscriptionTypeService.UpdateSubscriptionTypeRegistration(subscriptionType));
+                   await Task.Run(()=> _storgeSubscriptionTypeService
+                                        .UpdateSubscriptionTypeEntity(
+                                        Conversions.ToSubscriptionTypeEntity(subscriptionType)));    
+
+                        
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -125,7 +139,8 @@ namespace Preschool.Controllers
         {
             try
             {
-                var subscriptionType = await _subscriptionTypeService.GetSubscriptionTypeById(id);
+                var subscriptionType = await Task.Run(() =>
+                Conversions.ToSubscriptionType(_storgeSubscriptionTypeService.GetSubscriptionTypeEntityById(id)));
                 if (subscriptionType == null)
                 {
                     return NotFound();
@@ -145,7 +160,8 @@ namespace Preschool.Controllers
         {
             try
             {
-                var subscriptionType = await _subscriptionTypeService.GetSubscriptionTypeById(id);
+                var subscriptionType = await Task.Run(() =>
+                Conversions.ToSubscriptionType(_storgeSubscriptionTypeService.GetSubscriptionTypeEntityById(id)));
                 if (subscriptionType != null)
                 {
                     _subscriptionTypeService.RemoveSubscriptionType(subscriptionType);
@@ -160,7 +176,8 @@ namespace Preschool.Controllers
 
         private bool SubscriptionTypeExists(int id)
         {
-          return  _subscriptionTypeService.IsExists(id);
+            //return  _subscriptionTypeService.IsExists(id);
+            return _storgeSubscriptionTypeService.IsSubscriptionTypeExists(id);
         }
     }
 }

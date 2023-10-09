@@ -18,8 +18,7 @@ using Preschool.Services.EntitiesServices;
 
 namespace Preschool.Controllers
 {
-    //[Authorize(Roles = ("Admin"))]
-    //[Authorize(Roles = ("Teacher"))]
+   
     [Authorize(Roles = "Admin,Teacher")]
     public class ChildrenController : Controller
     {
@@ -147,6 +146,8 @@ namespace Preschool.Controllers
         {
             Child child = Conversions.ToChild(childVm);
             child.Classroom = Conversions.ToClassroom(_storgeClassroomService.GetClassroomEntityById(childVm.ClassroomId));
+            
+
 
             if (ModelState.IsValid && DocumentCopies != null)
             {

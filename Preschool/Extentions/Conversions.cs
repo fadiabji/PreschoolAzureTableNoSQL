@@ -2,6 +2,8 @@
 using Preschool.Models;
 using Newtonsoft.Json;
 using Preschool.Models.ViewModels;
+using NuGet.DependencyResolver;
+using Humanizer;
 
 namespace Preschool.Extentions
 {
@@ -22,15 +24,15 @@ namespace Preschool.Extentions
                 FatherTelephone = childModel.FatherTelephone,
                 MotherTelephone = childModel.MotherTelephone,
                 DateOfBirthUtc = DateTime.SpecifyKind(childModel.DateOfBirth, DateTimeKind.Utc),
-                EnrolDateUtc =  DateTime.SpecifyKind(childModel.EnrolDate, DateTimeKind.Utc),
+                EnrolDateUtc = DateTime.SpecifyKind(childModel.EnrolDate, DateTimeKind.Utc),
                 ClassroomId = childModel.ClassroomId,
                 ClassroomJosn = JsonConvert.SerializeObject(childModel.Classroom),
                 SubscriptionsJson = JsonConvert.SerializeObject(childModel.Subscriptions),
-                DocumentsImageJson= JsonConvert.SerializeObject(childModel.DocumentsImage),
+                DocumentsImageJson = JsonConvert.SerializeObject(childModel.DocumentsImage),
                 AttendancesJson = JsonConvert.SerializeObject(childModel.Attendances,
                                                                 new JsonSerializerSettings
                                                                 {
-                                                                    ReferenceLoopHandling = 
+                                                                    ReferenceLoopHandling =
                                                                     ReferenceLoopHandling.Ignore,
                                                                 }),
                 InvoicesJson = JsonConvert.SerializeObject(childModel.Invoices),
@@ -64,12 +66,12 @@ namespace Preschool.Extentions
         public static List<Child> ToChildren(List<ChildEntity> childEntities)
         {
             var result = new List<Child>();
-            foreach(ChildEntity childEntity in childEntities)
+            foreach (ChildEntity childEntity in childEntities)
             {
                 result.Add(Conversions.ToChild(childEntity));
             }
             return result;
-               
+
         }
 
         public static List<ChildEntity> ToChildrenEntities(List<Child> children)
@@ -98,7 +100,7 @@ namespace Preschool.Extentions
                 FatherName = child.FatherName,
                 MotherName = child.MotherName,
                 ClassroomId = child.ClassroomId,
-                
+
             };
             return childVm;
         }
@@ -147,7 +149,7 @@ namespace Preschool.Extentions
                 RegisterdAtUtc = DateTime.SpecifyKind(asset.RegisterdAt, DateTimeKind.Utc)
             };
         }
-        
+
 
         public static List<Models.Asset> ToAssets(List<AssetEntity> assetEntities)
         {
@@ -165,16 +167,17 @@ namespace Preschool.Extentions
             var result = new List<AssetEntity>();
             foreach (Models.Asset asset in assets)
             {
-                result.Add(Conversions.ToAssetEntity(asset, asset.Name, ""  ));
+                result.Add(Conversions.ToAssetEntity(asset, asset.Name, ""));
             }
             return result;
         }
 
 
-        public static Classroom ToClassroom(ClassroomEntity classroomEntity) {
+        public static Classroom ToClassroom(ClassroomEntity classroomEntity)
+        {
             return new Classroom()
             {
-                Id= classroomEntity.Id,
+                Id = classroomEntity.Id,
                 Name = classroomEntity.Name,
                 Color = classroomEntity.Color,
                 Icon = classroomEntity.Icon,
@@ -193,7 +196,7 @@ namespace Preschool.Extentions
                 Name = classroom.Name,
                 Color = classroom.Color,
                 Icon = classroom.Icon,
-                ChildrenJson =  JsonConvert.SerializeObject(classroom.Children),
+                ChildrenJson = JsonConvert.SerializeObject(classroom.Children),
                 TeachersJson = JsonConvert.SerializeObject(classroom.Teachers),
             };
         }
@@ -245,7 +248,7 @@ namespace Preschool.Extentions
             {
                 Id = teacherEntity.Id,
                 FirstName = teacherEntity.FirstName,
-                LastName = teacherEntity.LastName,       
+                LastName = teacherEntity.LastName,
                 DateOfBirth = teacherEntity.DateOfBirth,
                 RegistedAt = teacherEntity.RegistedAt,
                 ClassroomId = teacherEntity.ClassroomId,
@@ -307,10 +310,10 @@ namespace Preschool.Extentions
                 ChildId = attendances.ChildId,
                 ChildJson = JsonConvert.SerializeObject(attendances.Child,
                                                         new JsonSerializerSettings
-                                                            {
-                                                                ReferenceLoopHandling = 
+                                                        {
+                                                            ReferenceLoopHandling =
                                                                 ReferenceLoopHandling.Ignore,
-                                                            }),
+                                                        }),
             };
         }
 
@@ -324,5 +327,128 @@ namespace Preschool.Extentions
                 Child = JsonConvert.DeserializeObject<Child>(attendancesEntity.ChildJson),
             };
         }
+
+
+
+        public static SubscriptionEntity ToSubscriptionEntity(Subscription subscription)
+        {
+            return new SubscriptionEntity()
+            {
+                PartitionKey = subscription.IsActive.ToString(),
+                RowKey = subscription.Id.ToString(),
+                Id = subscription.Id,
+                ChildId = subscription.ChildId,
+                CreatedAt = DateTime.SpecifyKind(subscription.CreatedAt, DateTimeKind.Utc),
+                PaymentComplete = subscription.PaymentComplete,
+                ExpireAt = DateTime.SpecifyKind(subscription.ExpireAt, DateTimeKind.Utc),
+                IsActive = subscription.IsActive,
+                SubscriptionTypeId = subscription.SubscriptionTypeId,
+                SubscriptionTypeJson = JsonConvert.SerializeObject(subscription.SubscriptionType),
+                ChildJson = JsonConvert.SerializeObject(subscription.Child,
+                                                        new JsonSerializerSettings
+                                                        {
+                                                            ReferenceLoopHandling =
+                                                            ReferenceLoopHandling.Ignore
+                                                        }),
+                
+
+            };
+        }
+
+        public static Subscription ToSubscription(SubscriptionEntity subscriptionEntity)
+        {
+            return new Subscription
+            {
+                Id = subscriptionEntity.Id,
+                ChildId = subscriptionEntity.ChildId,
+                Child = JsonConvert.DeserializeObject<Child>(subscriptionEntity.ChildJson),
+                SubscriptionTypeId = subscriptionEntity.SubscriptionTypeId,
+                SubscriptionType = JsonConvert.DeserializeObject<SubscriptionType>(subscriptionEntity.SubscriptionTypeJson),
+                IsActive = subscriptionEntity.IsActive,
+                PaymentComplete = subscriptionEntity.PaymentComplete,
+                CreatedAt = subscriptionEntity.CreatedAt,
+                ExpireAt = subscriptionEntity.ExpireAt
+
+            };
+        }
+
+        public static List<Subscription> ToSubscriptions(List<SubscriptionEntity> subscriptionEntities)
+        {
+            var result = new List<Subscription>();
+            foreach (SubscriptionEntity subscriptionEntity in subscriptionEntities)
+            {
+                result.Add(Conversions.ToSubscription(subscriptionEntity));
+            }
+            return result;
+
+        }
+
+        public static List<SubscriptionEntity> ToSubscriptionEntities(List<Subscription> subscriptions)
+        {
+            var result = new List<SubscriptionEntity>();
+            foreach (Subscription subscription in subscriptions)
+            {
+                result.Add(Conversions.ToSubscriptionEntity(subscription));
+            }
+            return result;
+
+        }
+
+
+
+        public static SubscriptionTypeEntity ToSubscriptionTypeEntity(SubscriptionType subscriptionType)
+        {
+            return new SubscriptionTypeEntity()
+            {
+                PartitionKey = subscriptionType.Name.ToString(),
+                RowKey = subscriptionType.Id.ToString(),
+                Id = subscriptionType.Id,
+                Description = subscriptionType.Description,
+                DurationMonth = subscriptionType.DurationMonth,
+                Name = subscriptionType.Name,
+                Price = Convert.ToDouble(subscriptionType.Price),
+                InvoicesJson = JsonConvert.SerializeObject(subscriptionType.Invoices),
+                InvoiceSubscriptionTypeJson = JsonConvert.SerializeObject(subscriptionType.InvoiceSubscriptionType),
+            };
+        }
+
+        public static SubscriptionType ToSubscriptionType(SubscriptionTypeEntity subscriptionTypeEntity)
+        {
+            return new SubscriptionType
+            {
+                Id = subscriptionTypeEntity.Id,
+                Price = Convert.ToDecimal(subscriptionTypeEntity.Price),
+                Description = subscriptionTypeEntity.Description,
+                Name = subscriptionTypeEntity.Name,
+                DurationMonth = subscriptionTypeEntity.DurationMonth,
+                Invoices = JsonConvert.DeserializeObject<List<Invoice>>(subscriptionTypeEntity.InvoicesJson),
+                InvoiceSubscriptionType = JsonConvert.DeserializeObject<List<InvoiceSubscriptionType>>
+                                                        (subscriptionTypeEntity.InvoiceSubscriptionTypeJson)
+            };
+        }
+
+        public static List<SubscriptionType> ToSubscriptionTypes(List<SubscriptionTypeEntity> subscriptionTypeEntities)
+        {
+            var result = new List<SubscriptionType>();
+            foreach (SubscriptionTypeEntity subscriptionTypeEntity in subscriptionTypeEntities)
+            {
+                result.Add(Conversions.ToSubscriptionType(subscriptionTypeEntity));
+            }
+            return result;
+
+        }
+
+        public static List<SubscriptionTypeEntity> ToSubscriptionTypeEntities(List<SubscriptionType> subscriptionTypes)
+        {
+            var result = new List<SubscriptionTypeEntity>();
+            foreach (SubscriptionType subscriptionType in subscriptionTypes)
+            {
+                result.Add(Conversions.ToSubscriptionTypeEntity(subscriptionType));
+            }
+            return result;
+
+        }
     }
 }
+
+
