@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Preschool.Data;
+using Preschool.Extentions;
 using Preschool.Models;
 using Preschool.Models.ViewModels;
 using Preschool.Services;
+using Preschool.Services.EntitiesServices;
 using SQLitePCL;
 
 namespace Preschool.Controllers
@@ -17,34 +19,41 @@ namespace Preschool.Controllers
     [Authorize(Roles = ("Admin"))]
     public class SubscriptionsController : Controller
     {
-        private readonly ISubscriptionService _subscriptionService;
-        private readonly ISubscriptionTypeService _subscriptionTypeService;
-        private readonly IChildService _childService;
+       
 
-        public SubscriptionsController(ISubscriptionService subscriptionService, ISubscriptionTypeService subscriptionTypeService, IChildService childService)
+        private readonly IStorgeSubscriptionService _storgeSubscriptionService;
+
+        private readonly IStorgeChildService _storgeChildService;
+
+        private readonly IStorgeSubscriptionTypeService _storgeSubscriptionTypeService;
+
+        public SubscriptionsController( IStorgeSubscriptionService storgeSubscriptionService,
+                                        IStorgeChildService storgeChildService,
+                                        IStorgeSubscriptionTypeService storgeSubscriptionTypeService
+                                        )
         {
-            _subscriptionService = subscriptionService;
-            _subscriptionTypeService = subscriptionTypeService;
-            _childService = childService;
+            _storgeSubscriptionService = storgeSubscriptionService;
+            _storgeChildService = storgeChildService;
+            _storgeSubscriptionTypeService = storgeSubscriptionTypeService;
         }
 
         // GET: Subscriptions
         public async Task<IActionResult> Index()
         {
             CheckSubscriptionsExpireDateToExpire();
-            return View(await _subscriptionService.GetSubscriptions());
+            return View( await Task.Run(()=>Conversions.ToSubscriptions(_storgeSubscriptionService.GetSubscriptionEntities())));
         }
 
 
         public void CheckSubscriptionsExpireDateToExpire()
         {
-            var subs = _subscriptionService.GetSubscriptions().Result.ToList();
+            var subs = Conversions.ToSubscriptions(_storgeSubscriptionService.GetSubscriptionEntities());
             foreach (var sub in subs)
             {
                 if (sub.ExpireAt.Date < DateTime.Now.Date)
                 {
                     sub.IsActive = false;
-                    _subscriptionService.UpdateSubscriptionRegistration(sub);
+                    _storgeSubscriptionService.UpdateSubscriptionEntity(Conversions.ToSubscriptionEntity(sub));
                 }
             }
         }
@@ -53,7 +62,8 @@ namespace Preschool.Controllers
         public async Task<IActionResult> Details(int? id)
         {
            
-            var subscription = await _subscriptionService.GetSubscriptionById(id);
+            //var subscription = await _subscriptionService.GetSubscriptionById(id);
+            var subscription = await Task.Run(()=> Conversions.ToSubscription(_storgeSubscriptionService.GetSubscriptionEntityById(id)));
             if (subscription == null)
             {
                 return NotFound();
@@ -65,15 +75,20 @@ namespace Preschool.Controllers
         // GET: Subscriptions/Create
         public IActionResult Create()
         {
-            ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name");
-            ViewData["ChildId"] = new SelectList(_childService.GetChildren().Result, "Id", "FullName");
+
+            List<SubscriptionType> subtypelist = Conversions.ToSubscriptionTypes(_storgeSubscriptionTypeService.GetSubscriptionTypeEntities());
+
+            List<Child> childrenlist = Conversions.ToChildren(_storgeChildService.GetChildEntities()).ToList();
+            ViewData["SubscriptionTypeId"] = new SelectList(Conversions
+                                                            .ToSubscriptionTypes(_storgeSubscriptionTypeService
+                                                            .GetSubscriptionTypeEntities().ToList()), "Id", "Name");
+
+            ViewData["ChildId"] = new SelectList(Conversions.ToChildren(_storgeChildService.GetChildEntities().ToList()).ToList(), "Id", "FullName");
 
             return View();
         }
 
-        // POST: Subscriptions/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Subscription subscription)
@@ -85,19 +100,28 @@ namespace Preschool.Controllers
             if (ModelState.IsValid)
             {
                 subscription.CreatedAt = DateTime.Now.Date;
-                subscription.ExpireAt = subscription.CreatedAt.AddMonths(await Task.Run(() => _subscriptionTypeService.GetSubscriptionTypeById(subscription.SubscriptionTypeId).Result.DurationMonth));
+                
+                subscription.ExpireAt = subscription.CreatedAt.AddMonths(
+                Conversions.ToSubscriptionType(_storgeSubscriptionTypeService
+                                                .GetSubscriptionTypeEntityById(subscription.SubscriptionTypeId))
+                                                .DurationMonth);
+
                 subscription.IsActive = true;
-                await Task.Run(() => _subscriptionService.AddSubscription(subscription));
+                //await Task.Run(() => _subscriptionService.AddSubscription(subscription));
+                await Task.Run(() => _storgeSubscriptionService.AddSubscriptionToTable(Conversions.ToSubscriptionEntity(subscription)));
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubscriptionTypeId"] = new SelectList(await Task.Run(()=>_subscriptionTypeService.GetSubscriptionTypes().Result), "Id", "Name", subscription.SubscriptionTypeId);
-            ViewData["ChildId"] = new SelectList(_childService.GetChildren().Result, "Id", "FullName", subscription.ChildId);
+            //ViewData["SubscriptionTypeId"] = new SelectList(await Task.Run(()=>_subscriptionTypeService.GetSubscriptionTypes().Result), "Id", "Name", subscription.SubscriptionTypeId);
+            ViewData["SubscriptionTypeId"] = new SelectList(Conversions.ToSubscriptionTypes(_storgeSubscriptionTypeService.GetSubscriptionTypeEntities()), "Id", "Name", subscription.SubscriptionTypeId);
+
+            ViewData["ChildId"] = new SelectList(Conversions.ToChildren(_storgeChildService.GetChildEntities()), "Id", "FullName", subscription.ChildId);
             return View(subscription);
         }
 
         private bool IsValidChildId(int childId)
         {
-            return _childService.GetChildById(childId).Result.Subscriptions.Any(s => s.IsActive == true);
+            //return _childService.GetChildById(childId).Result.Subscriptions.Any(s => s.IsActive == true);
+            return Conversions.ToChild(_storgeChildService.GetChildEntityById(childId)).Subscriptions.Any(s => s.IsActive == true);
         }
 
 
@@ -109,18 +133,19 @@ namespace Preschool.Controllers
                 return NotFound();
             }
 
-            var subscription = await _subscriptionService.GetSubscriptionById(id);
+            //var subscription = await _subscriptionService.GetSubscriptionById(id);
+            var subscription = await Task.Run(()=>Conversions.ToSubscription(_storgeSubscriptionService.GetSubscriptionEntityById(id)));
             if (subscription == null)
             {
                 return NotFound();
             }
-            ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name", subscription.SubscriptionTypeId);
+            //ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name", subscription.SubscriptionTypeId);
+            ViewData["SubscriptionTypeId"] = new SelectList(Conversions.ToSubscriptionTypes(_storgeSubscriptionTypeService.GetSubscriptionTypeEntities()), "Id", "Name", subscription.SubscriptionTypeId);
+
             return View(subscription);
         }
 
-        // POST: Subscriptions/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Subscription subscription)
@@ -135,8 +160,13 @@ namespace Preschool.Controllers
                 try
 
                 {
-                    subscription.ExpireAt = subscription.CreatedAt.AddMonths(_subscriptionTypeService.GetSubscriptionTypeById(subscription.SubscriptionTypeId).Result.DurationMonth);
-                    await Task.Run(()=>_subscriptionService.UpdateSubscriptionRegistration(subscription));  
+                    //subscription.ExpireAt = subscription.CreatedAt.AddMonths(_subscriptionTypeService.GetSubscriptionTypeById(subscription.SubscriptionTypeId).Result.DurationMonth);
+                    subscription.ExpireAt = subscription.CreatedAt.AddMonths(Conversions.ToSubscriptionType(
+                                                                            _storgeSubscriptionTypeService
+                                                                            .GetSubscriptionTypeEntityById(subscription.SubscriptionTypeId))
+                                                                            .DurationMonth);
+                    //await Task.Run(()=>_subscriptionService.UpdateSubscriptionRegistration(subscription));  
+                    await Task.Run(()=>_storgeSubscriptionService.UpdateSubscriptionEntity(Conversions.ToSubscriptionEntity(subscription)));    
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -151,8 +181,12 @@ namespace Preschool.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name", subscription.SubscriptionTypeId);
-            ViewData["ChildId"] = new SelectList(_childService.GetChildren().Result, "Id", "FullName");
+            //ViewData["SubscriptionTypeId"] = new SelectList(_subscriptionTypeService.GetSubscriptionTypes().Result, "Id", "Name", subscription.SubscriptionTypeId);
+            ViewData["SubscriptionTypeId"] = new SelectList(Conversions.ToSubscriptionTypes(
+                                                _storgeSubscriptionTypeService
+                                                .GetSubscriptionTypeEntities()), "Id", "Name", subscription.SubscriptionTypeId);
+
+            ViewData["ChildId"] = new SelectList(Conversions.ToChildren(_storgeChildService.GetChildEntities()), "Id", "FullName");
             return View(subscription);
         }
 
@@ -161,7 +195,8 @@ namespace Preschool.Controllers
         {
             try
             {
-                var subscription = await _subscriptionService.GetSubscriptionById(id);
+                //var subscription = await _subscriptionService.GetSubscriptionById(id);
+                var subscription = await Task.Run(() => Conversions.ToSubscription(_storgeSubscriptionService.GetSubscriptionEntityById(id)));
                 if (subscription == null)
                 {
                     return NotFound();
@@ -182,10 +217,12 @@ namespace Preschool.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var subscription = await _subscriptionService.GetSubscriptionById(id);
+            //var subscription = await _subscriptionService.GetSubscriptionById(id);
+            var subscription = await Task.Run(() => Conversions.ToSubscription(_storgeSubscriptionService.GetSubscriptionEntityById(id)));
             if (subscription != null)
             {
-                await Task.Run(() => _subscriptionService.RemoveSubscription(subscription));
+                //await Task.Run(() => _subscriptionService.RemoveSubscription(subscription));
+                await Task.Run(()=> _storgeSubscriptionService.DeleteSubscriptionEntity(Conversions.ToSubscriptionEntity(subscription)));
             }
             
             return RedirectToAction(nameof(Index));
@@ -193,7 +230,8 @@ namespace Preschool.Controllers
 
         private bool SubscriptionExists(int id)
         {
-          return _subscriptionService.IsExists(id);
+          //return _subscriptionService.IsExists(id);
+          return _storgeSubscriptionService.IsSubscriptionExists(id);
         }
     }
 }

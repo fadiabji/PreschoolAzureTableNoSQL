@@ -58,7 +58,7 @@
                     @item.Child.FullName
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.SubscriptionType.Name)
+                    @* @Html.DisplayFor(modelItem => item.SubscriptionType.Name) *@
                 </td>
                 <td>
                     @if (item.IsActive && item.ExpireAt.Date <= DateTime.Now.Date.AddDays(7))

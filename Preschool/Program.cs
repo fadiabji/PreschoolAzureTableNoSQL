@@ -41,6 +41,8 @@ builder.Services.AddScoped<IStorgeAssetService, StorgeAssetService>();
 builder.Services.AddScoped<IStorgeAttendanceService, StorgeAttendanceService>();
 builder.Services.AddScoped<IStorgeClassroomService, StorgeClassroomService>();
 builder.Services.AddScoped<IStorgeTeacherService, StorgeTeacherService>();
+builder.Services.AddScoped<IStorgeSubscriptionService,StorgeSubscriptionService>();
+builder.Services.AddScoped<IStorgeSubscriptionTypeService, StorgeSubscriptionTypeService>();
 
 
 var app = builder.Build();
